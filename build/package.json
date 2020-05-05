@@ -1,0 +1,11 @@
+{
+    "dependencies": {
+        "express": "^4.17.1"
+    },
+    "custom-config": {
+
+        "api-version-string": "v1",
+        "port": 80
+
+    }
+}
