@@ -2,6 +2,7 @@
 const express = require("express");
 const fs = require('fs');
 const path = require('path');
+const bodyparser = require('body-parser');
 
 // routers
 const api = require('./routes/api');
@@ -18,6 +19,8 @@ const port = config['custom-config'].port;
 
 // static host our public folder
 app.use(express.static(path.join(`${__dirname}/public`)));
+app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({extended: true}));
 
 // set up our routes
 app.use('/api', api);

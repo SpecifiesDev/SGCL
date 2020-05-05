@@ -1,11 +1,10 @@
 {
     "dependencies": {
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "mongoose": "^5.9.12"
     },
     "custom-config": {
-
         "api-version-string": "v1",
         "port": 80
-
     }
 }
