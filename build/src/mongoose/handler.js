@@ -1,39 +1,91 @@
 const Player = require('./schemas/player');
+const Team = require('./schemas/team');
 
 let mongoose = require('mongoose');
 
 const database = "SGCL"
 
-mongoose.connect(`mongodb+srv://deploy:27plh6RqdQPmYlVF@mineplexstats-3clnx.mongodb.net/${database}?retryWrites=true&w=majority`, {useUnifiedTopology: true, useNewUrlParser: true}).catch((err) => {console.log(err)});
+const internal_error = {success: false, message: "Internal Server Error", code: 500};
+
+mongoose.connect(`mongodb+srv://deploy:27plh6RqdQPmYlVF@mineplexstats-3clnx.mongodb.net/${database}?retryWrites=true&w=majority`, { useFindAndModify: true, useUnifiedTopology: true, useNewUrlParser: true}).catch((err) => {console.log(err)});
 
 
-function createPlayer(req, res) {
+const createPlayer = async (req, res) => {
 
     let ign = req.body.ign;
     let team = req.body.team;
 
-    Player.countDocuments({ign: ign}, (err, count) => {
-        if(count > 0 || err) return res.json({success: false, message: "Player already exists"});
+    // If we're missing the necessary parameters return invalid request
+    if(!ign || !team) return res.json({success: false, message: "Invalid request", code: 400});
 
+    // Search player documents for ign
+    let playerCount = await Player.countDocuments({ign: ign});
+
+    // If the player was found, it already exists so we don't want to create another
+    if(playerCount > 0) return res.json({success: false, message: "Player already exists."});
+
+    // Search team docs for name
+    let teamCount = await Team.countDocuments({name: team});
+
+    // If inserted team doesn't exist, throw an error
+    if(!(teamCount > 0)) return res.json({success: false, message: "Team doesn't exist."});
+
+    let player = Player({ign: ign, team: team});
+
+    // We have to use a callback here, because if not we get a big bundled object that we don't really need
+    Team.findOne({name: team}, async (err, resp) => {
+        if(err) return res.json(interal_error);
+
+        // grab the array
+        let arr = resp.players;
+
+        // push the added player
+        arr.push(ign);
+
+        // set the object array
+        resp.players = arr;
+
+        // update the team
+        await Team.updateOne(resp);
         
-    })
+        // create the player
+        await player.save();
 
-    return new Promise((resolve, reject) => {
-
-        Player.countDocuments({ign: ign}, (err, count) => { 
-            if(count > 0 || err) return reject();
-            let player = Player({ign: ign, team: team});
-
-            player.save(err => {
-                if(err) return reject();
-                resolve();
-            });
-            
-        }); 
-        
-
+        // return a success code
+        res.json({success: true, message: "Player created", code: 200});
     });
 
+
+}
+
+const createTeam = async (req, res) => {
+
+    let name = req.body.name;
+
+    if(!name) return res.json({success: false, message: "Invalid request", code: 400});
+
+    let count = await Team.countDocuments({name: name});
+
+    if(count > 0) return res.json({success: false, message: "Team already exists"});
+
+    let team = Team({name: name, players: []});
+
+    team.save().then(() => {res.json({success: true, message: "Created team", code: 200})}).catch(() => {res.json(internal_error)});
+
+}
+
+function query_team(id) {
+
+    return new Promise(async (resolve, reject) => {
+        let count = await Team.countDocuments({name: id});
+        if(!(count > 0)) return reject("Team doesn't exist.");
+
+        Team.find({name: id}, (err, team) => {
+            if(err) return reject("Internal Error");
+
+            resolve(team);
+        });
+    });
 
 }
 
@@ -89,4 +141,4 @@ function deleteUser(uuid) {
     });
 }
 
-module.exports = { createPlayer: createPlayer };
+module.exports = { createPlayer: createPlayer, createTeam: createTeam, query_team: query_team };

@@ -25,8 +25,27 @@ router.post(`/${api_version}/players/player/create/`, (req, res) => {
     // We need to authenticate this later
     mongoose.createPlayer(req, res);
 
+});
+
+router.post(`/${api_version}/teams/team/create/`, (req, res) => {
+
+    // Also need to authenticate later
+    mongoose.createTeam(req, res);
 
 });
 
+router.post(`/${api_version}/teams/team/:team`, (req, res) => {
+
+    let team = req.params.team;
+
+    mongoose.query_team(team).then(resp => {
+    
+        res.json({success: true, name: team, players: resp[0].players});
+        
+    }).catch(err => {
+        res.json({success: false, message: err});
+    });
+
+});
 
 module.exports = router;
