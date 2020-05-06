@@ -34,7 +34,7 @@ router.post(`/${api_version}/teams/team/create/`, (req, res) => {
 
 });
 
-router.post(`/${api_version}/teams/team/:team`, (req, res) => {
+router.get(`/${api_version}/teams/team/:team`, (req, res) => {
 
     let team = req.params.team;
 
