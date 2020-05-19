@@ -1,8 +1,10 @@
-let mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 let team = new mongoose.Schema({
     name: String,
-    players: Array
+    players: Array,
+    wins: Number,
+    losses: Number
 });
 
 let Team = mongoose.model('storedTeams', team);

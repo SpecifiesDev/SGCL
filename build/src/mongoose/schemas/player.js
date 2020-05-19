@@ -2,7 +2,8 @@ let mongoose = require('mongoose');
 
 let player = new mongoose.Schema({
     ign: String,
-    team: String
+    team: String,
+    games: Array
 });
 
 let Player = mongoose.model('storedPlayers', player);
