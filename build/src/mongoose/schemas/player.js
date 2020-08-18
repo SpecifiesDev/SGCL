@@ -2,8 +2,12 @@ let mongoose = require('mongoose');
 
 let player = new mongoose.Schema({
     ign: String,
-    team: String,
-    games: Array
+    uuid: String,
+    kills: Number,
+    deaths: Number,
+    points: Number,
+    tourns: Array,
+    seasons: Array
 });
 
 let Player = mongoose.model('storedPlayers', player);

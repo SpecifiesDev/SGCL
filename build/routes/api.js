@@ -27,19 +27,6 @@ router.post(`/${api_version}/players/player/create/`, (req, res) => {
 
 });
 
-router.post(`/${api_version}/teams/team/create/`, (req, res) => {
-
-    // Also need to authenticate later
-    mongoose.createTeam(req, res);
-
-});
-
-router.post(`/${api_version}/games/game/create/`, (req, res) => {
-
-    // Also need to authenticate later
-    mongoose.createGame(req, res);
-});
-
 router.post(`/${api_version}/tournaments/tournament/create/`, (req, res) => {
 
     // Also need to authenticate later
@@ -47,29 +34,8 @@ router.post(`/${api_version}/tournaments/tournament/create/`, (req, res) => {
 });
 
 router.post(`/${api_version}/seasons/season/create/`, (req, res) => {
-
     // Also need to authenticate later
     mongoose.createSeason(req, res);
-});
-
-router.post(`/${api_version}/rounds/round/create/`, (req, res) => {
-
-    // Also need to authenticate later
-    mongoose.createRound(req, res);
-});
-
-router.get(`/${api_version}/teams/team/:team`, (req, res) => {
-
-    let team = req.params.team;
-
-    mongoose.query_team(team).then(resp => {
-    
-        res.json({success: true, name: team, players: resp[0].players});
-        
-    }).catch(err => {
-        res.json({success: false, message: err});
-    });
-
 });
 
 router.get(`/${api_version}/players/player/:player`, (req, res) => {
@@ -78,10 +44,52 @@ router.get(`/${api_version}/players/player/:player`, (req, res) => {
     mongoose.query_player(name).then(resp => {
         let parsed = resp[0];
 
-        res.json({success: true, ign: parsed.ign, team: parsed.team, games: parsed.games});
+        res.json({success: true, id: parsed.uuid,ign: parsed.ign, kills: parsed.kills, deaths: parsed.deaths, points: parsed.points, seasons: parsed.seasons, tournaments: parsed.tourns});
     }).catch(err => {
         res.json({success: false, message: err});
     })
+});
+
+router.get(`/${api_version}/players/player/:player/xp`, (req, res) => {
+
+    let name = req.params.player;
+
+    mongoose.query_player(name).then(resp => {
+
+        let parsed = resp[0];
+
+        let kills = parsed.kills;
+        let points = parsed.points;
+
+
+        /**
+         * For now modifiers are:
+         * Kills - 3xp
+         * Points - .5xp
+         */
+
+         // calculate base xp of the player
+         let base = (kills * 3) + (points * .5);
+
+         // for now the required xp to begin modifying will be set to 50
+         if(base > 25) {
+
+            let weight = Math.log2(base) / 100;
+
+            let killModifier = 3 * (1 + weight);
+            let pointModifier = .5 * (1 + weight);
+
+            res.json({success: true, xp: Math.ceil((kills * killModifier) + (points * pointModifier))});
+            
+
+         } else res.json({success: true, xp: Math.ceil(base)});
+
+
+
+    }).catch(err => {
+
+    });
+
 });
 
 router.get(`/${api_version}/seasons/season/:season`, (req, res) => {
@@ -103,23 +111,18 @@ router.get(`/${api_version}/tournaments/tournament/:tourn`, (req, res) => {
 
         let parsed = resp[0];
 
-        res.json({success: true, id: parsed.UUID, rounds: parsed.rounds, name: parsed.name});
+        let rounds = [];
+
+        for(let [k, v] of parsed.rounds) {
+            rounds.push(v);
+        }
+
+        res.json({success: true, name: parsed.name, id: parsed.UUID, type: parsed.type, rounds: rounds});
 
     }).catch(err => {
         res.json({success: false, message: err});
     })
 });
 
-router.get(`/${api_version}/rounds/round/:round`, (req, res) => {
-    let round = req.params.round;
-
-    mongoose.query_round(round).then(resp => {
-        let parsed = resp[0];
-
-        resp.json({success: true, id: parsed.UUID, games: parsed.games});
-    }).catch(err => {
-        res.json({success: false, message: err});
-    })
-});
 
 module.exports = router;

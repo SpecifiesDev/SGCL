@@ -14,6 +14,8 @@ const app = express();
 // parse package.json for custom parameters we want to use to ease the dev cycle
 const config = JSON.parse(fs.readFileSync(path.join(`${__dirname}/package.json`), 'utf8'));
 
+app.set('json spaces', 2);
+
 // pull configs
 const port = config['custom-config'].port;
 
