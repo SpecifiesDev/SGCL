@@ -27,6 +27,10 @@ router.post(`/${api_version}/players/player/create/`, (req, res) => {
 
 });
 
+router.post(`/${api_version}/reports/report/create/`, (req, res) => {
+    mongoose.createReport(req, res);
+});
+
 router.post(`/${api_version}/tournaments/tournament/create/`, (req, res) => {
 
     // Also need to authenticate later
@@ -122,6 +126,41 @@ router.get(`/${api_version}/tournaments/tournament/:tourn`, (req, res) => {
     }).catch(err => {
         res.json({success: false, message: err});
     })
+});
+
+router.get(`/${api_version}/tournaments/tournament/:tourn/round/:round`, (req, res) => {
+
+    let tournament = req.params.tourn;
+    let round = req.params.round;
+
+    mongoose.query_tournaments(tournament).then(resp => {
+        let parsed = resp[0];
+
+        if(parsed.rounds.get(round) == null) return res.json({success: false, message: "Round does not exist."});
+
+        res.json({success: true, type: parsed.type, round: parsed.rounds.get(round)});
+    }).catch(err => {
+        res.json({success: false, message: err});
+    });
+
+});
+
+router.get(`/${api_version}/tournaments/tournament/:tourn/round/:round/game/:game`, (req, res) => {
+
+    let tournament = req.params.tourn;
+    let round = req.params.round;
+    let game = req.params.game;
+
+    mongoose.query_tournaments(tournament).then(resp => {
+        let parsed = resp[0];
+
+        if(parsed.rounds.get(round) == null) return res.json({success: false, message: "Round does not exist."});
+        if(parsed.rounds.get(round).games[game - 1] == null) return res.json({success: false, message: "Round does not exist."});
+        res.json({success: true, type: parsed.type, game: parsed.rounds.get(round).games[game - 1]});
+    }).catch(err => {
+        res.json({success: false, message: err});
+    });
+
 });
 
 

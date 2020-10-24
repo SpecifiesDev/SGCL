@@ -144,6 +144,20 @@ const createTournament = async(req, res) => {
      
 }
 
+const createReport = async(req, res) => {
+
+    let cid = req.body.cid;
+    let message = req.body.message;
+
+    Player.find({}, (err, players) => {
+        
+        players.map(player => {
+            console.log(player);
+        });
+    });
+
+}
+
 const createPlayer = async (req, res) => {
 
     let ign = req.body.ign;
@@ -237,6 +251,8 @@ const insertPlayer = async (player, count, uuid, name, season) => {
             let tournArr = resp.tourns;
             let seasonArr = resp.seasons;
 
+            if(totalPoints == null) totalPoints = 0;
+
             if(!(tournArr.includes(hashCode(name)))) tournArr.push(hashCode(name));
             if(!seasonArr.includes(season)) seasonArr.push(season);
 
@@ -254,8 +270,46 @@ const insertPlayer = async (player, count, uuid, name, season) => {
     }
 }
 
+/**
+ * Iterative function to calculate the Levenshtein Distance between two strings.
+ * @param {String} a First comparison string.
+ * @param {String} b Second comparison string 
+ */
+const getLevenshteinDistance = (a, b) => {
+
+    if(a.length == 0) return b.length; 
+    if(b.length == 0) return a.length; 
+  
+    let matrix = [];
+
+    /*
+    * We create 2DArray and populate along each column, and then each row.
+    * We do this so that when we fill in the rest of the matrix, the values for insertion, deletion, and substituion
+    * are based upon each corresponding letter in the loop.
+    */
+    for(let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for(let i = 0; i <= a.length; i++) matrix[0][i] = i;
+    
+  
+    // Fill in the rest of the matrix
+    for(let i = 1; i <= b.length; i++){
+      for(let j = 1; j <= a.length; j++){
+        // If the two characters are the same, the LD is equal to the number at the position.
+        if(b.charAt(i-1) == a.charAt(j-1)) matrix[i][j] = matrix[i-1][j-1]; 
+        // If they're not the same, calculate the costs for insertion, deletion, and subsitution
+        else matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1)); 
+      }
+    }
+  
+    // Return the very last value in the matrix, AKA the calculated distance between the two strings.
+    return matrix[b.length][a.length];
+}
+
+
+
 module.exports = { 
     createPlayer: createPlayer, query_player: query_player,
     createTournament: createTournament, createSeason: createSeason,
-    query_season: query_season, query_tournaments: query_tournaments
+    query_season: query_season, query_tournaments: query_tournaments,
+    createReport: createReport
 };

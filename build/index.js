@@ -21,7 +21,7 @@ const port = config['custom-config'].port;
 
 // static host our public folder
 app.use(express.static(path.join(`${__dirname}/public`)));
-app.use(bodyparser.json());
+app.use(bodyparser.json({limit: '50mb'}));
 app.use(bodyparser.urlencoded({extended: true}));
 
 // set up our routes
