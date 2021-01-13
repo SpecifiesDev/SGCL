@@ -9,7 +9,7 @@ const database = "SGCL"
 
 const internal_error = {success: false, message: "Internal Server Error", code: 500};
 
-mongoose.connect(`mongodb+srv://deploy:27plh6RqdQPmYlVF@mineplexstats-3clnx.mongodb.net/${database}?retryWrites=true&w=majority`, { useFindAndModify: true, useUnifiedTopology: true, useNewUrlParser: true}).catch((err) => {console.log(err)});
+mongoose.connect(``, { useFindAndModify: true, useUnifiedTopology: true, useNewUrlParser: true}).catch((err) => {console.log(err)});
 
 
 const createSeason = async(req, res) => {
